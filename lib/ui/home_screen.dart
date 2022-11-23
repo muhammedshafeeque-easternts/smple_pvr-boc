@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:sampl/bloc/movie_events.dart';
+import 'package:sampl/bloc/movie_states.dart';
 import 'package:sampl/constants/color.dart';
 import 'package:sampl/constants/text.dart';
 import 'package:sampl/notifiers/home_notifier.dart';
@@ -12,7 +15,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<HomeNotifier>().getTopRatedMovie();
+    context.read<MovieBloc>().add(LoadMovieEvent());
     return Scaffold(
       backgroundColor:kColorDark,
       appBar: AppBar(
@@ -20,34 +23,40 @@ class HomeScreen extends StatelessWidget {
         title: const Text("Top Rated Movie",style: kTextAveHev16,),
       ),
       body:
-          Consumer<HomeNotifier>(
-            builder: (context, notifier,_) {
-              return notifier.listMovie.isEmpty?LoadingView():
-              NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification scrollNotification){
-                  if(scrollNotification.metrics.pixels==scrollNotification.metrics.maxScrollExtent){
-                    if(notifier.loadMore&&notifier.isLoadingTopRatedMovie==false){
-                      notifier.getTopRatedMovie();
+          BlocBuilder<MovieBloc,MovieState>(
+            builder: (context, state) {
+              if(state is MovieLoadingState){
+                return LoadingView();
+              }
+              if(state is MovieLoadedState){
+
+                return NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollNotification){
+                    if(scrollNotification.metrics.pixels==scrollNotification.metrics.maxScrollExtent){
+                      /*if(notifier.loadMore&&notifier.isLoadingTopRatedMovie==false){
+                        notifier.getTopRatedMovie();
+                      }*/
                     }
-                  }
-                  return true;
-                },
-                child: RefreshIndicator(
-                  onRefresh: ()async{
-                    notifier.getTopRatedMovie(refresh: true);
+                    return true;
                   },
-                  child: ListView.builder(
-                      itemCount: notifier.listMovie.length+1,
-                      itemBuilder: (BuildContext context,int index){
-                        if(index<notifier.listMovie.length){
-                          return MovieView(movie:notifier.listMovie[index]);
-                        }else{
-                          return notifier.loadMore? LoadingView():const SizedBox();
+                  child: RefreshIndicator(
+                    onRefresh: ()async{
+                      // notifier.getTopRatedMovie(refresh: true);
+                    },
+                    child: ListView.builder(
+                        itemCount: state.listMovie.length+1,
+                        itemBuilder: (BuildContext context,int index){
+                          if(index<state.listMovie.length){
+                            return MovieView(movie:state.listMovie[index]);
+                          }else{
+                            return LoadingView();
+                          }
                         }
-                      }
+                    ),
                   ),
-                ),
-              );
+                );
+              }
+              return const SizedBox.shrink();
             }
           ),
     );

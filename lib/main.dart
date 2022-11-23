@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sampl/notifiers/home_notifier.dart';
 import 'package:sampl/routes/routes.dart';
@@ -13,10 +14,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider<HomeNotifier>(
-          create: (_) => HomeNotifier(),
+        BlocProvider<MovieBloc>(
+          create: (_) => MovieBloc(),
         ),
       ],
       child: MaterialApp(

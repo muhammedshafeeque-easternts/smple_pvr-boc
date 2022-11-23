@@ -1,10 +1,24 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sampl/bloc/movie_events.dart';
+import 'package:sampl/bloc/movie_states.dart';
 import 'package:sampl/models/detail_movie_response_model.dart';
 import 'package:sampl/models/top_rated_response_model.dart';
 import 'package:sampl/constants/api_constants.dart';
 import 'package:sampl/util/http.dart';
 
-class HomeNotifier extends ChangeNotifier{
+class MovieBloc extends Bloc<MovieEvent,MovieState>{
+
+  MovieBloc():super(MovieLoadingState()){
+    on<LoadMovieEvent>((event, emit)async {
+      try {
+        await getTopRatedMovie();
+        emit(MovieLoadedState(listMovie));
+      } catch (e) {
+        emit(MovieErrorState(e.toString()));
+      }
+    });
+  }
 
   Http client = Http();
 
@@ -14,11 +28,11 @@ class HomeNotifier extends ChangeNotifier{
 
   bool isLoadingDetailMovie = true ;
 
-  bool isLoadingTopRatedMovie = true;
-
   int currentPage=1;
 
   bool loadMore = true;
+
+
 
   Future<void> geDetailMovie(String id) async {
     try {
@@ -28,7 +42,6 @@ class HomeNotifier extends ChangeNotifier{
       }
       ));
       isLoadingDetailMovie = false;
-      notifyListeners();
     } catch (e, s) {
       // logger.e('getDetailMovie', e, s);
       return Future.error(e);
@@ -45,8 +58,6 @@ class HomeNotifier extends ChangeNotifier{
       listMovie.clear();
 
     }
-    isLoadingTopRatedMovie=true;
-    notifyListeners();
     await Future.delayed(const Duration(milliseconds: 300),(){});
     try {
      topRatedResp = TopRatedResponse.fromJson(await client.getRequest(url:
@@ -57,14 +68,10 @@ class HomeNotifier extends ChangeNotifier{
     },
     ));
      listMovie.addAll(topRatedResp!.results!);
-     isLoadingTopRatedMovie = false;
-     notifyListeners();
      currentPage++;
      if(topRatedResp!.results!.isEmpty){
        loadMore = false;
      }
-
-
     } catch (e, s) {
       return Future.error(e);
     }

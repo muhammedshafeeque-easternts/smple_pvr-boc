@@ -13,11 +13,11 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<HomeNotifier>().geDetailMovie(movieId);
+    context.read<MovieBloc>().geDetailMovie(movieId);
     return SafeArea(
       child: Scaffold(
         backgroundColor: kColorDark,
-        body: Consumer<HomeNotifier>(
+        body: Consumer<MovieBloc>(
             builder: (context, notifier,_) {
           if(notifier.isLoadingDetailMovie){
             return Container(
